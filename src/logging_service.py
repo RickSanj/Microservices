@@ -17,6 +17,9 @@ def logging_controller():
 
         unique_id = data["id"]
         message = data["msg"]
+        if unique_id in hash_table:
+            return jsonify({"status": "Duplicate message ignored", "id": unique_id}), 200
+
         hash_table[unique_id] = message
         print(f"Message received: {message}")
 
