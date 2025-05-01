@@ -1,0 +1,13 @@
+# Dockerfile.logging
+FROM python:3.9
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY app/logging_service.py .
+
+EXPOSE 8081 8082 8083
+
+CMD ["python3", "logging_service.py", "--port", "8081"]

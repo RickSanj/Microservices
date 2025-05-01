@@ -1,1 +1,7 @@
 Flask == 2.0.2
+hazelcast-python-client
+Werkzeug==2.0.2
+requests
+flask_wtf
+kafka-python>=2.0.0
+python-consul

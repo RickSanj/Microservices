@@ -1,0 +1,11 @@
+# Dockerfile.consul
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY app/populate_consul_config.py .
+
+CMD ["python3", "populate_consul_config.py"]

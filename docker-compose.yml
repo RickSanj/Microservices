@@ -1,0 +1,158 @@
+services:
+    # Hazelcast service
+    hazelcast-server:
+        image: hazelcast/hazelcast:latest
+        container_name: hazelcast-server
+        networks:
+            - microservices-network
+        restart: unless-stopped
+
+        # kafka-server:
+        #     image: bitnami/kafka:latest
+        #     container_name: kafka-server
+        #     environment:
+        #         - BITNAMI_DEBUG=true
+        #         - KAFKA_ENABLE_KRAFT=yes
+        #         - KAFKA_CFG_NODE_ID=1
+        #         - KAFKA_CFG_PROCESS_ROLES=controller,broker
+        #         - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+        #         - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-server:9092
+        #         - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafkabroker1:9093,2@kafkabroker2:9094,3@kafkabroker3:9095
+        #         - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+        #         - ALLOW_PLAINTEXT_LISTENER=yes
+        #         - KAFKA_CLUSTER_ID=CD13AE80-1827-4F4D-B577-36D7B1D83C61
+        #     networks:
+        #         - microservices-network
+        #     ports:
+        #         - "9092:9092"
+        #     restart: unless-stopped
+
+    # kafka-server:
+    #     image: bitnami/kafka:latest
+    #     container_name: kafka-server
+    #     ports:
+    #         - "9092:9092"
+    #     environment:
+    # - KAFKA_CFG_NODE_ID=1
+    # - KAFKA_CFG_PROCESS_ROLES=broker,controller
+    # - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+    # - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://:9093
+    # - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+    # - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+    # - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    # - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    # - KAFKA_BROKER_ID=1
+    # - KAFKA_CFG_BROKER_RACK=1
+    # networks:
+    #     - microservices-network
+    # volumes:
+    #     - kafka_data:/bitnami/kafka
+
+    # Kafka topic creation container
+    kafka-topic-creator:
+        image: bitnami/kafka:latest
+        container_name: kafka-topic-creator
+        command: >
+            kafka-topics.sh --create --bootstrap-server kafka-server:9092
+            --replication-factor 3 --partitions 3 --topic messages_topic
+        networks:
+            - microservices-network
+        depends_on:
+            - kafka-server
+        restart: "no"
+
+    # Build and run services
+    facade-service:
+        build:
+            context: .
+            dockerfile: Dockerfile.facade
+        container_name: facade-service
+        networks:
+            - microservices-network
+        ports:
+            - "8080:8080"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        restart: unless-stopped
+
+    logging-service1:
+        build:
+            context: .
+            dockerfile: Dockerfile.logging
+        container_name: logging-service1
+        networks:
+            - microservices-network
+        ports:
+            - "8081:8081"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        command: python3 logging_service.py --port 8081
+        restart: unless-stopped
+
+    logging-service2:
+        build:
+            context: .
+            dockerfile: Dockerfile.logging
+        container_name: logging-service2
+        networks:
+            - microservices-network
+        ports:
+            - "8082:8081"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        command: python3 logging_service.py --port 8082
+        restart: unless-stopped
+
+    logging-service3:
+        build:
+            context: .
+            dockerfile: Dockerfile.logging
+        container_name: logging-service3
+        networks:
+            - microservices-network
+        ports:
+            - "8083:8081"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        command: python3 logging_service.py --port 8083
+        restart: unless-stopped
+
+    messages-service1:
+        build:
+            context: .
+            dockerfile: Dockerfile.messages
+        container_name: messages-service1
+        networks:
+            - microservices-network
+        ports:
+            - "8084:8084"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        command: python3 /app/messages_service.py --port 8084
+        restart: unless-stopped
+
+    messages-service2:
+        build:
+            context: .
+            dockerfile: Dockerfile.messages
+        container_name: messages-service2
+        networks:
+            - microservices-network
+        ports:
+            - "8085:8085"
+        depends_on:
+            - kafka-server
+            - hazelcast-server
+        command: python3 /app/messages_service.py --port 8085
+        restart: unless-stopped
+
+networks:
+    microservices-network:
+        driver: bridge
+volumes:
+    kafka_data:

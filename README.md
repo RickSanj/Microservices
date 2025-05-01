@@ -1,3 +1,9 @@
 # Microservices
-HW_1
-Simple architecture consisting of 3 microservices (facade-service, logging-service, messages-service)
+
+chmod +x run_kafka_hazelcast.sh
+chmod +x run_services.sh
+
+./run_kafka_hazelcast.sh
+./run_services.sh
+
+See Requests.http to see how to send requests

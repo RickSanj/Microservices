@@ -1,0 +1,15 @@
+# Dockerfile.facade
+
+# FROM python:3.8-slim
+FROM python:3.9
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY app/facade_service.py .
+
+EXPOSE 8080
+
+CMD ["python3", "facade_service.py"]

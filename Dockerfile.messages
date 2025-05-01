@@ -1,0 +1,13 @@
+# Dockerfile.messages
+FROM python:3.9
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY app/messages_service.py .
+
+EXPOSE 8084 8085
+
+CMD ["python3", "messages_service.py", "--port", "8084"]
